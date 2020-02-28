@@ -1,0 +1,37 @@
+---
+title: "Gill_Sarah_ML_PS4"
+author: "Sarah Gill"
+date: "2/28/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Documents/GitHub/problem-set-4")
+library(ggplot2)
+library(tidyverse)
+
+```
+
+
+```{r 1}
+x <- cbind(c(1, 1, 0, 5, 6, 4), c(4, 3, 4, 1, 2, 0))
+
+#1 Plot the observations
+plot(x)
+df <- data.frame(x)
+
+ggplot(df)+
+  geom_point(aes(x=X1, y=X2))
+```
+2. Randomly assign a cluster label to each observation. Report the cluster labels for each observation and plot the results with a different color for each cluster.
+```{r 2}
+set.seed(246810)
+cluster_lab <- as.factor(sample(c(0,1), size = nrow(x), replace = TRUE))
+
+df$cluster_lab = cluster_lab
+
+ggplot(df)+
+  geom_point(aes(x=X1, y=X2, color = cluster_lab))
+
+```
