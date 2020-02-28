@@ -13,12 +13,12 @@ library(tidyverse)
 
 ```
 
-
+### Performing k-Means By Hand
 ```{r 1}
 x <- cbind(c(1, 1, 0, 5, 6, 4), c(4, 3, 4, 1, 2, 0))
 
 #1 Plot the observations
-plot(x)
+#plot(x)
 df <- data.frame(x)
 
 ggplot(df)+
@@ -35,3 +35,84 @@ ggplot(df)+
   geom_point(aes(x=X1, y=X2, color = cluster_lab))
 
 ```
+3.Compute the centroid for each cluster.
+```{r 3}
+
+centroid_0 <- c(mean(df$X1[df$cluster_lab==0]), mean(df$X2[df$cluster_lab==0]))
+centroid_1 <- c(mean(df$X1[df$cluster_lab==1]), mean(df$X2[df$cluster_lab==1]))
+
+ggplot(df)+
+  geom_point(aes(x=X1, y=X2, color = cluster_lab))+
+  geom_point(aes(x=centroid_0[1], y=centroid_0[2], color = cluster_lab), shape = 4) +
+  geom_point(aes(x=centroid_1[1], y=centroid_1[2], color = cluster_lab[1]), shape = 4)
+  
+```
+4. Assign each observation to the centroid to which it is closest, in terms of Euclidean distance. Report the cluster labels for each observation
+```{r 4}
+#Euclidean distance: d((x1,y1),(x2,y2) = sqrt((x1-x2)^2+(y1-y2)^2)
+
+euclid_dist <- function (df, i, centroid_x){
+  x1 <- df$X1[i]
+  y1 <- df$X2[i]
+  x2 <- centroid_x[1]
+  y2 <- centroid_x[2]
+  dist <- sqrt((x1-x2)^2+(y1-y2)^2)
+  return(dist)
+}
+
+
+
+for (i in 1:6) {
+if (euclid_dist(df, i ,centroid_0) < euclid_dist(df, i ,centroid_1)){
+  df$cluster_lab[i] <- 0
+
+} else {
+  df$cluster_lab[i] <- 1
+}
+  }
+
+ggplot(df)+
+  geom_point(aes(x=X1, y=X2, color = cluster_lab))+
+  geom_point(aes(x=centroid_0[1], y=centroid_0[2], color = cluster_lab), shape = 4) +
+  geom_point(aes(x=centroid_1[1], y=centroid_1[2], color = cluster_lab[1]), shape = 4)
+  
+
+```
+
+```{r 5a}
+centroid_0 <- c(mean(df$X1[df$cluster_lab==0]), mean(df$X2[df$cluster_lab==0]))
+centroid_1 <- c(mean(df$X1[df$cluster_lab==1]), mean(df$X2[df$cluster_lab==1]))
+
+ggplot(df)+
+  geom_point(aes(x=X1, y=X2, color = cluster_lab))+
+  geom_point(aes(x=centroid_0[1], y=centroid_0[2], color = cluster_lab), shape = 4) +
+  geom_point(aes(x=centroid_1[1], y=centroid_1[2], color = cluster_lab[1]), shape = 4)
+
+```
+
+```{r 5b}
+
+for (i in 1:6) {
+if (euclid_dist(df, i ,centroid_0) < euclid_dist(df, i ,centroid_1)){
+  df$cluster_lab[i] <- 0
+
+} else {
+  df$cluster_lab[i] <- 1
+}
+  }
+
+ggplot(df)+
+  geom_point(aes(x=X1, y=X2, color = cluster_lab))+
+  geom_point(aes(x=centroid_0[1], y=centroid_0[2], color = cluster_lab), shape = 4) +
+  geom_point(aes(x=centroid_1[1], y=centroid_1[2], color = cluster_lab[1]), shape = 4)
+ 
+```
+No change, wiht the randomization that happened this time around, it only took one itteration before cluster assignement and location of centroids stopped changeing
+
+6. Plot
+See above
+
+### Clustering State Legislative Professionalism
+
+
+
