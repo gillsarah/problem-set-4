@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 setwd("~/Documents/GitHub/problem-set-4")
 library(ggplot2)
 library(tidyverse)
+library(skimr)
 
 ```
 
@@ -113,6 +114,36 @@ No change, wiht the randomization that happened this time around, it only took o
 See above
 
 ### Clustering State Legislative Professionalism
+
+1. Load the state legislative professionalism data
+```{r 2.1}
+load("Data and Codebook/legprof-components.v1.0.RData")
+legprof <- x
+skim(legprof)
+
+```
+2. Munge the data
+```{r 2.2}
+
+lp_clean <- legprof %>%
+  filter(sessid == "2009/10")  %>%
+  select("expend", "salary_real", "t_slength", "slength") %>%
+  na.omit() %>%
+  scale()
+  
+#is.na(lp_clean) #check
+#dist(lp_clean)
+```
+    e. and anything else you think necessary to get this subset of data into workable form (hint: consider storing the state names as a separate object to be used in plotting later) 
+
+3. Diagnose clusterability in any way you’d prefer (e.g., sparse sampling, ODI, etc.); display the results and discuss the likelihood that natural, non-random structure exist in these data. _Hint:_ We didn't cover how to do this R in class, but consider `dissplot()` from the `seriation` package, the `factoextra` package, and others for calculating, presenting, and exploring the clusterability of some feature space.   
+```{r 2.3}
+
+```
+
+
+
+4. (5 points) Fit an **agglomerative hierarchical** clustering algorithm using any linkage method you prefer, to these data and present the results. Give a quick, high level summary of the output and general patterns. 
 
 
 
