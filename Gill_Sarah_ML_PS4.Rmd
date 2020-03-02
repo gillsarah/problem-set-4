@@ -12,6 +12,7 @@ library(ggplot2)
 library(tidyverse)
 library(skimr)
 library(seriation)
+library(gridExtra)
 
 ```
 
@@ -120,7 +121,7 @@ See above
 ```{r 2.1}
 load("Data and Codebook/legprof-components.v1.0.RData")
 legprof <- x
-skim(legprof)
+#skim(legprof)
 
 ```
 2. Munge the data
@@ -159,7 +160,7 @@ dissplot(di)
 This plot does not support the presence of non-random structure in this data. The central diagonal is very narrow and there are few rectangles of particularly dark pigmentation. The picture is generally grey overall, without much visually apparent structure. 
 
 
-4. (5 points) Fit an **agglomerative hierarchical** clustering algorithm using any linkage method you prefer, to these data and present the results. Give a quick, high level summary of the output and general patterns. 
+4. (5 points) Fit an **agglomerative hierarchical** clustering algorithm using any linkage method you prefer, to these data and present the results.
 ```{r 2.4}
 hc_single <- hclust(di, 
                     method = "single");plot(hc_single, hang = -1)
@@ -177,7 +178,8 @@ hc_centroid <- hclust(di,
 
 
 ```
-Choose and discuss.....
+At the k=2 level, all linkage methods except complete have one extremely small cluster and one large cluster (for instance at the point of thee being two clusters for linkage method = single, there is one state in a cluster and all other states in a cluster). This seems incorrect, however the test of clusterability did not support a high level of clusterability. 
+Looking at linkage method = complete we see a lot of pair-wise clustering early on.
 
 ```{r 2.4b}
 hc <- cutree(hc_complete, 
@@ -186,24 +188,24 @@ hc <- cutree(hc_complete,
 hc_results <- data.frame(hc)
 hc_results$state <- lp_for_reference$state
 
-c1 <- hc%>%
+c1 <- hc_results%>%
   filter(hc_results$hc == 1)%>%
   select("state")
 
 as.list(c1)
 ```
 ```{r 2.4c}
-c2 <- hc%>%
+c2 <- hc_results%>%
   filter(hc_results$hc == 2)%>%
   select("state")
 
 as.list(c2)
 ```
-If we use complete as our linkage method and assume that there are 2 clusters, then we see one large cluster and one small one. 
+As mentioned above, if we use complete as our linkage method and assume that there are 2 clusters, then we see one large cluster and one small one (although still a reasonable size). 
 The small cluster has mostly populous, high cost of living states, but not all of them have above average population density or cost of living. The larger cluster is too large to characterize without more information
 
 
-5. (5 points) Fit a **k-means** algorithm to these data and present the results. Give a quick, high level summary of the output and general patterns. Initialize the algorithm at `k = 2`, and then check this assumption in the validation questions below.
+5. (5 points) Fit a **k-means** algorithm to these data and present the results.
 ```{r 2.5a}
 set.seed(246810)
 
@@ -236,7 +238,7 @@ In the other cluster we see some Southern states but also Southwestern and Easte
 The second cluster also has more observations in it. 
 I do not know much, a priori, about legislative professionalism, so cannot easily judge the results given by this kmeans clustering 
 
-6. (5 points) Fit a **Gaussian mixture model via the EM algorithm** to these data and present the results. Give a quick, high level summary of the output and general patterns. Initialize the algorithm at `k = 2`, and then check this assumption in the validation questions below.
+6. Fit a Gaussian mixture model via the EM algorithm*to these data and present the results. 
 
 ```{r 2.6}
 library(mixtools) #journal of statistical software to accompony this
@@ -288,14 +290,14 @@ ggplot(data.frame(x = gmm_s$x)) +
 ```{r 2.6b}
 posterior_e <- data.frame(cbind(gmm_e$x, gmm_e$posterior))
 rownames(posterior_e) <- lp_for_reference$state
-round(head(posterior_e, 10), 3)
+#round(head(posterior_e, 10), 3)
 
-posterior$component <- ifelse(posterior$comp.1 > 0.3, 1, 2) #maually, say prob > 30% -> cluster 1
+posterior_e$component <- ifelse(posterior_e$comp.1 > 0.3, 1, 2) #maually, say prob > 30% -> cluster 1
 #table(posterior_e$component)
 
 posterior_s <- data.frame(cbind(gmm_s$x, gmm_s$posterior))
 rownames(posterior_s) <- lp_for_reference$state
-round(head(posterior_s, 10), 3)
+#round(head(posterior_s, 10), 3)
 
 posterior_s$component <- ifelse(posterior_s$comp.1 > 0.3, 1, 2) #maually, say prob > 30% -> cluster 1
 table(posterior_s$component)
@@ -308,7 +310,7 @@ If we look specifically at different features, (for instance expenditures and sa
 
 
 
-7. (15 points) Compare output of all in visually useful, simple ways (e.g., present the dendrogram, plot by state cluster assignment across two features like salary and expenditures, etc.). There should be several plots of comparison and output.
+7. (15 points) Compare output of all in visually useful, simple ways
 ```{r 2.7}
 #lp <- data.frame(lp_clean)
 df <- merge(lp_for_reference, hc_results, on = state)
@@ -355,27 +357,44 @@ ggplot(data = df)+
 
 
 
-
 ggplot(data = df)+
   geom_point(aes(x = t_slength, y = slength, color = hc))
 
 ggplot(data = df)+
   geom_point(aes(x = t_slength, y = slength, color = kmeans.cluster))
 
+
+
 ```
 
 
-8. (5 points) Select a *single* validation strategy (e.g., compactness via min(WSS), average silhouette width, etc.), and calculate for all three algorithms. Display and compare your results for all three algorithms you fit (hierarchical, k-means, GMM). _Hint:_ Here again, we didn't cover this in R in class, but think about using the `clValid` package, though there are many other packages and ways to validate cluster patterns across iterations.
+8. (5 points) Select a validation strategy 
 
 ```{r 2.8}
 library(clValid)
 
-cl <- clValid(lp_clean, nClust = 2, 
+cl <- clValid(lp_clean, nClust = 2:6, 
               clMethods = c("hierarchical", "kmeans"), 
               method = "complete",
               validation = c("stability", "internal"))
 summary(cl)
+
+
 ```
 
+9. (10 points) Discuss the validation output, e.g.,
 
+  * What can you take away from the fit? 
+   
+  Hierarchical and kmeans have similar fits
+  
+  * Which approach is optimal? And optimal at what value of k? 
+  
+  Mesuring by silhoette width, kmeans is the best fit, at a k=2
+  
+  * What are reasons you could imagine selecting a technically “sub-optimal” clustering method, regardless of the validation statistics? 
+  
+  First of all, there are multiple, sometimes contradicting measures of fit, so the judgement call of which to use can influence the optimal choice. Beyond this questons of limitations on computing power and time could advantage some, less computatioally intensive, algorithms even if their fit is inferior
+  
+  
 
